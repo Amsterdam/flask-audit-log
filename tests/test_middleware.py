@@ -1,4 +1,4 @@
-from flask import Flask, request, g
+from flask import Flask, request, g, Response
 
 from unittest import TestCase
 from unittest.mock import patch, MagicMock
@@ -120,6 +120,57 @@ class TestMiddleware(TestCase):
             app.preprocess_request()
             self.assertFalse(hasattr(request, 'audit_log'))
 
+    @patch('flask_audit_log.middleware.FlaskAuditLogger')
+    def test_after_request(self, mocked_audit_log, mock_send_log):
+        """
+        Test and assert that the response will not be logged to the request if the
+        url in the request is exempty from audit logging
+        """
+        app = Flask('test')
+        app.config['AUDIT_LOG'] = {
+            'EXEMPT_URLS': [r'/foo/bar']
+        }
+        middleware = AuditLogMiddleware(app)
+
+
+        with app.test_request_context('/'):
+            mocked_instance = mocked_audit_log.return_value
+
+            # Call the _before_request and _after_request function
+            app.preprocess_request()
+
+            # Create a mock repsonse
+            resp = Response()
+            resp = app.process_response(resp)
+
+            mocked_instance.set_flask_http_response.assert_called_with(resp)
+
+    @patch('flask_audit_log.middleware.FlaskAuditLogger')
+    def test_after_request_exempt_url(self, mocked_audit_log, mock_send_log):
+        """
+        Test and assert that the response will not be logged to the request if the
+        url in the request is exempty from audit logging
+        """
+        app = Flask('test')
+        app.config['AUDIT_LOG'] = {
+            'EXEMPT_URLS': [r'/foo/bar']
+        }
+        middleware = AuditLogMiddleware(app)
+
+
+        with app.test_request_context('/foo/bar'):
+            mocked_instance = mocked_audit_log.return_value
+
+            # Call the _before_request and _after_request function
+            app.preprocess_request()
+
+            # Create a mock repsonse
+            resp = Response()
+            resp = app.process_response(resp)
+
+            mocked_instance.set_flask_http_response.assert_not_called()
+
+
     def test_exempt_url(self, mock_send_log):
         app = Flask('test')
         app.config['AUDIT_LOG'] = {
@@ -130,46 +181,6 @@ class TestMiddleware(TestCase):
         self.assertTrue(middleware._exempt_url('/foo/bar'))
 
         self.assertFalse(middleware._exempt_url('/foo/bar2'))
-
-'''
-    @patch('django_audit_log.middleware.DjangoAuditLogger')
-    def test_process_response(self, mocked_audit_log):
-        """
-        Assert that the response has been added to the audit log and
-        that the log has been fired.
-        """
-        # prepare request
-        request = self.request_factory.get('/')
-        self.middleware.process_request(request)
-
-        # prepare response
-        response = View.as_view()(request)
-        self.middleware.process_response(request, response)
-
-        mocked_instance = mocked_audit_log.return_value
-        mocked_instance.set_django_http_response.assert_called_with(response)
-        mocked_instance.send_log.assert_called_with()
-
-    @patch('django_audit_log.middleware.DjangoAuditLogger')
-    def test_process_response_without_audit_log(self, mocked_audit_log):
-        """
-        Assert that when the audit log does not exist, we do not try to call any
-        methods on it
-        """
-        # prepare request (but don't pass through middleware, so that hasattr(request, 'audit_log') is False
-        request = self.request_factory.get('/')
-        self.assertFalse(hasattr(request, 'audit_log'), "Audit log should not have been attached to request")
-
-        # prepare response
-        response = View.as_view()(request)
-        self.middleware.process_response(request, response)
-
-        mocked_instance = mocked_audit_log.return_value
-        mocked_instance.set_http_response.assert_not_called()
-        mocked_instance.send_log.assert_not_called()
-
-
-'''
 
 def test_get_user_from_request():
     return {

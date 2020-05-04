@@ -61,13 +61,14 @@ class AuditLogMiddleware(object):
         g.audit_log = audit_log
 
     def _after_request(self, response):
-        audit_log = g.audit_log
-        audit_log.set_flask_http_response(response)
+        if hasattr(g, 'audit_log') and not self._exempt_url(request.path):
+            g.audit_log.set_flask_http_response(response)
 
         return response
 
     def _teardown_request(self, exception):
-        g.audit_log.send_log()
+        if hasattr(g, 'audit_log') and not self._exempt_url(request.path):
+            g.audit_log.send_log()
 
     def _get_user_from_request_callable(self):
         if self.settings.get('USER_FROM_REQUEST_CALLABLE_PATH'):
