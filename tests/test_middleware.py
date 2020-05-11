@@ -15,7 +15,7 @@ class TestMiddleware(TestCase):
         self.middleware = AuditLogMiddleware(self.app)
         self.client = self.app.test_client()
 
-    
+
     def test_attach_audit_log(self, mock_send_log):
         """
         Assert that the middleware attaches the audit log to the request.
@@ -36,7 +36,7 @@ class TestMiddleware(TestCase):
         """
         app = Flask('test')
         middleware = AuditLogMiddleware(app)
-        
+
         with app.test_request_context('/'):
             g.audit_log = 'test'
 
@@ -71,7 +71,7 @@ class TestMiddleware(TestCase):
     def test_before_request_exempt_urls(self, mock_send_log):
         """
         Test and assert that the audit log will not be attached to the request if the
-        url in the request is exempty from audit logging
+        url in the request is exempt from audit logging
         """
         app = Flask('test')
         app.config['AUDIT_LOG'] = {
@@ -82,7 +82,7 @@ class TestMiddleware(TestCase):
         with app.test_request_context('/'):
             # Call the _before_request function
             app.preprocess_request()
-            self.assertFalse(hasattr(request, 'audit_log'))
+            self.assertTrue(hasattr(g, 'audit_log'))
 
     @patch('flask_audit_log.middleware.FlaskAuditLogger')
     def test_before_request_user_callable(self, mocked_audit_log, mock_send_log):
@@ -95,30 +95,13 @@ class TestMiddleware(TestCase):
             'USER_FROM_REQUEST_CALLABLE_PATH': 'tests.test_middleware.test_get_user_from_request'
         }
         middleware = AuditLogMiddleware(app)
-        
+
         with app.test_request_context('/'):
             # Call the _before_request function
             app.preprocess_request()
-            
+
             mocked_instance = mocked_audit_log.return_value
             mocked_instance.set_user.assert_called_with(**test_get_user_from_request())
-            
-
-    def test_before_request_exempt_urls(self, mock_send_log):
-        """
-        Test and assert that the audit log will not be attached to the request if the
-        url in the request is exempty from audit logging
-        """
-        app = Flask('test')
-        app.config['AUDIT_LOG'] = {
-            'EXEMPT_URLS': [r'/foo/bar']
-        }
-        middleware = AuditLogMiddleware(app)
-        
-        with app.test_request_context('/'):
-            # Call the _before_request function
-            app.preprocess_request()
-            self.assertFalse(hasattr(request, 'audit_log'))
 
     @patch('flask_audit_log.middleware.FlaskAuditLogger')
     def test_after_request(self, mocked_audit_log, mock_send_log):

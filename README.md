@@ -26,13 +26,13 @@ In the teardown request phase the audit_log middleware will send the log.
     ```bash
     pip install datapunt_flask_audit_log
     ```
-   
+
 2. Add "flask_audit_log" middleware to your Flask app
 
     ```python
     from flask_audit_log.middleware import AuditLogMiddleware
     ...
-    
+
     app = Flask('DemoApp')
 
     # Attach our middleware
@@ -43,9 +43,9 @@ In the teardown request phase the audit_log middleware will send the log.
 (e.g. health check urls).
 
     ```python
-    # If a URL path matches a regular expression in this list, the request will not be redirected to HTTPS.
-    # The AuditLogMiddleware strips leading slashes from URL paths, so patterns shouldn’t include them, e.g.
-    # [r'foo/bar$']
+    # If a URL path matches a regular expression in this list, the request will not be logged by the audit logger.
+    # The AuditLogMiddleware doesn't strips leading slashes from URL paths, so patterns should include them, e.g.
+    # [r'/foo/bar$']
 
     # Use configuration from `app`
     app.config['AUDIT_LOG'] = {
@@ -107,7 +107,7 @@ By default the audit log sends the following json structure per request:
   }
 }
 ```
-    
+
 Each json entry is set by its corresponding method. In this case,
 the middleware sets them automatically by calling
 `set_http_request()` and `set_user_fom_request()`
@@ -116,7 +116,7 @@ last data is set by invoking `set_http_response()`.
 
 After the response has been processed the middleware creates the
 log item by calling `send_log()` in teardown_request.
-    
+
 ## Custom optional context info
 
 Per request it is possible to add optional context info. For a complete
@@ -170,7 +170,7 @@ g.audit_log.warning(self, msg)
 g.audit_log.error(self, msg)
 g.audit_log.critical(self, msg)
 ```
-    
+
 These methods will add the following details to the log:
 
 ```json
