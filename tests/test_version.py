@@ -24,7 +24,8 @@ class TestVersion(TestCase):
                 (?:\.[0-9a-zA-Z-]+)*
             ))?
             $
-        """
+        """,
+        re.VERBOSE,
     )
 
     def test_version_exists(self):
@@ -35,5 +36,7 @@ class TestVersion(TestCase):
 
     def test_semver(self):
         # Check if the version is a valid semver
+        print(flask_audit_log.__version__)
         version_match = self._REGEX.match(flask_audit_log.__version__)
+        print(version_match)
         self.assertIsNotNone(version_match)
