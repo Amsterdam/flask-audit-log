@@ -87,8 +87,8 @@ class TestMiddleware(TestCase):
     @patch('flask_audit_log.middleware.FlaskAuditLogger')
     def test_before_request_user_callable(self, mocked_audit_log, mock_send_log):
         """
-        Test and assert that the audit log will not be attached to the request if the
-        url in the request is exempty from audit logging
+        Test to see that the provided callable will be used to collect the user
+        information from the request.
         """
         app = Flask('test')
         app.config['AUDIT_LOG'] = {
